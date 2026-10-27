@@ -45,20 +45,23 @@ export default class CallHandler {
       return;
     }
 
-    // In PWA standalone mode, open links in the default browser/app instead of staying in the PWA
-    if (env.isRunningStandalone()) {
-      // Use anchor element with target="_blank" to trigger OS-level URL handling
-      // This allows the system to open the URL in the default browser or associated app
-      const anchor = document.createElement('a');
-      anchor.href = redirectUrl;
-      anchor.target = '_blank';
-      anchor.rel = 'noopener noreferrer';
-      // For PWAs, we need to trigger a user-like click to bypass PWA restrictions
-      anchor.style.display = 'none';
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-    } else {
+    // Open external links in default browser/app (works for PWA and regular browser)
+    // Use window.open() with _blank which is more reliable than anchor.click() for external navigation
+    try {
+      const newWindow = window.open(redirectUrl, '_blank', 'noopener,noreferrer');
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        // Fallback: anchor click method
+        const anchor = document.createElement('a');
+        anchor.href = redirectUrl;
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+        anchor.style.display = 'none';
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+      }
+    } catch {
+      // Final fallback: replace location (stays in PWA if that's the environment)
       window.location.replace(redirectUrl);
     }
   }

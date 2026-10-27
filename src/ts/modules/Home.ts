@@ -391,6 +391,11 @@ export default class Home {
     let redirectUrl: string;
     if (response.status === "found") {
       redirectUrl = response.redirectUrl as string;
+      // Open external links in the default browser, not inside the PWA window.
+      // target="_blank" + rel="noopener" severs the window relationship so the
+      // host browser hands the URL to the OS for external Chrome/app launch.
+      window.open(redirectUrl, "_blank", "noopener,noreferrer");
+      return;
     } else {
       redirectUrl = CallHandler.getRedirectUrlToHome(envQuery, response);
     }
